@@ -11,6 +11,7 @@ services:
       - COMFYUI_PORT_HOST=8188
     # Expose ComfyUI locally only
     ports:
+      - "127.0.0.1:1111:1111"   
       - "${COMFYUI_HOST_BIND:-127.0.0.1}:${COMFYUI_PORT:-8188}:8188"
     volumes:
       - ${STACK_NAME}-workspace:/workspace
