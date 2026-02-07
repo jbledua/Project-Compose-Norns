@@ -2,6 +2,34 @@
 
 Deploys ComfyUI with an NVIDIA GPU–enabled container and a Tailscale sidecar for private, secure access. Includes persistent user data and custom nodes, and supports a shared models directory (local or NAS-mounted) plus optional shared input/output folders to avoid duplicating weights.
 
+## Local-Only Test (No Tailscale)
+This repo is currently configured to run ComfyUI locally without Tailscale for quick testing. The service binds to `127.0.0.1:8188` by default.
+
+Quick start:
+
+```bash
+# From the repo root
+mkdir -p comfyui/user comfyui/custom_nodes models input output
+
+# Optional: change port or bind address
+# export COMFYUI_PORT=8288
+# export COMFYUI_HOST_BIND=0.0.0.0   # expose on LAN (be cautious)
+
+docker compose pull
+docker compose up -d norns-app
+```
+
+Open http://localhost:8188 in your browser.
+
+Mounts used with safe defaults:
+- `./comfyui/user -> /comfyui/user`
+- `./comfyui/custom_nodes -> /comfyui/custom_nodes`
+- `./models -> /comfyui/models`
+- `./input -> /comfyui/input`
+- `./output -> /comfyui/output`
+
+To re-enable Tailscale later, restore the sidecar service and `network_mode: service:norns-ts` in `docker-compose.yml`.
+
 ## Why “Norns”?
 After The Norns (nornir) — three powerful, fate‑weaving goddess‑like beings in Norse mythology. The name nods to the feeling that AI can seem like magic: threads of inputs and models woven into outcomes.
 
