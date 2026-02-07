@@ -1,0 +1,62 @@
+services:
+  norns-ts:
+    image: tailscale/tailscale:latest
+    container_name: norns-ts
+    hostname: ${TS_HOSTNAME}
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+      - TS_EXTRA_ARGS=--advertise-tags=tag:container
+    volumes:
+      - norns-ts-state:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    ports:
+      # Publish ComfyUI to the LAN via the shared network namespace
+      - ${COMFYUI_HOST_BIND:-0.0.0.0}:${COMFYUI_PORT:-8188}:8188
+    restart: unless-stopped
+
+  norns-app:
+    image: jamesbrink/comfyui:latest
+    container_name: norns-app
+    network_mode: service:norns-ts
+    depends_on:
+      - norns-ts
+
+    # GPU (Docker Compose v2+)
+    gpus: all
+
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
+    volumes:
+      # ComfyUI persistent state / settings (named volume)
+      - norns-user:/comfyui/user
+
+      # Optional: persist custom nodes (named volume)
+      - norns-custom-nodes:/comfyui/custom_nodes
+
+      # Shared models folder (ONE copy of checkpoints/loras/etc)
+      - ${MODELS_DIR}:/comfyui/models
+
+      # Optional: shared input/output directories
+      - ${INPUT_DIR}:/comfyui/input
+      - ${OUTPUT_DIR}:/comfyui/output
+
+    restart: unless-stopped
+
+volumes:
+  norns-ts-state:
+    name: ${STACK_NAME}-ts-state
+    driver: local
+  norns-user:
+    name: ${STACK_NAME}-user
+    driver: local
+  norns-custom-nodes:
+    name: ${STACK_NAME}-custom-nodes
+    driver: local
