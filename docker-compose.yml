@@ -1,7 +1,7 @@
 services:
   norns-app:
     image: ghcr.io/ai-dock/comfyui:latest-cuda
-    container_name: norns-app
+    container_name: ${STACK_NAME}-app
     gpus: all
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
@@ -13,10 +13,21 @@ services:
     ports:
       - "${COMFYUI_HOST_BIND:-127.0.0.1}:${COMFYUI_PORT:-8188}:8188"
     volumes:
-      - ./workspace:/workspace:rshared
-      - ./comfyui/user:/comfyui/user
-      - ./comfyui/custom_nodes:/comfyui/custom_nodes
+      - ${STACK_NAME}-workspace:/workspace
+      - ${STACK_NAME}-user:/comfyui/user
+      - ${STACK_NAME}-custom-nodes:/comfyui/custom_nodes
       - ${MODELS_DIR:-./models}:/comfyui/models
       - ${INPUT_DIR:-./input}:/comfyui/input
       - ${OUTPUT_DIR:-./output}:/comfyui/output
     restart: unless-stopped
+
+volumes:
+  norns-workspace:
+    name: ${STACK_NAME}-workspace
+    driver: local
+  norns-user:
+    name: ${STACK_NAME}-user
+    driver: local
+  norns-custom-nodes:
+    name: ${STACK_NAME}-custom-nodes
+    driver: local
